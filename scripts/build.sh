@@ -8,6 +8,6 @@ export CGO_ENABLED=0
 
 # Build
 echo "Building proxyforge..."
-go build -ldflags="-w -s" -o bin/proxyforge cmd/main.go
+go build -ldflags="-w -s" -o bin/proxyforge ./cmd/
 
 echo "Build successful! Binary is located at bin/proxyforge"

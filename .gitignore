@@ -2,10 +2,6 @@
 bin/
 proxyforge
 
-# Output files
-working_proxies.txt
-proxy_stats.json
-
 # IDE
 .vscode/
 .idea/

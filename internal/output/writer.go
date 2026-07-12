@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"proxyforge-clone/internal/models"
 )
@@ -11,21 +12,28 @@ import (
 const txtFileName = "working_proxies.txt"
 const jsonFileName = "proxy_stats.json"
 
-// WriteOutputs writes the list of working proxies to txt and json files.
-func WriteOutputs(proxies []models.Proxy) error {
-	if err := writeTXT(proxies); err != nil {
+// WriteOutputs writes the list of working proxies to txt and json files in the specified outdir.
+func WriteOutputs(proxies []models.Proxy, outdir string) error {
+	if err := os.MkdirAll(outdir, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	txtPath := filepath.Join(outdir, txtFileName)
+	jsonPath := filepath.Join(outdir, jsonFileName)
+
+	if err := writeTXT(proxies, txtPath); err != nil {
 		return fmt.Errorf("failed to write txt output: %w", err)
 	}
 
-	if err := writeJSON(proxies); err != nil {
+	if err := writeJSON(proxies, jsonPath); err != nil {
 		return fmt.Errorf("failed to write json output: %w", err)
 	}
 
 	return nil
 }
 
-func writeTXT(proxies []models.Proxy) error {
-	file, err := os.Create(txtFileName)
+func writeTXT(proxies []models.Proxy, filePath string) error {
+	file, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
@@ -41,8 +49,8 @@ func writeTXT(proxies []models.Proxy) error {
 	return nil
 }
 
-func writeJSON(proxies []models.Proxy) error {
-	file, err := os.Create(jsonFileName)
+func writeJSON(proxies []models.Proxy, filePath string) error {
+	file, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
