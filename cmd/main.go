@@ -14,13 +14,14 @@ import (
 func main() {
 	workers := flag.Int("workers", 50, "Number of concurrent workers for checking proxies")
 	loop := flag.Bool("loop", false, "Run in an infinite loop for local daemon mode")
+	outdir := flag.String("outdir", ".", "Output directory for the generated files")
 	flag.Parse()
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	for {
 		log.Println("INFO: Starting proxy scraping and checking process...")
-		runCycle(*workers)
+		runCycle(*workers, *outdir)
 
 		if !*loop {
 			break
@@ -33,13 +34,13 @@ func main() {
 	log.Println("INFO: Proxy scraping and checking process finished.")
 }
 
-func runCycle(workers int) {
+func runCycle(workers int, outdir string) {
 	// Create context with a 5-minute timeout for the entire cycle
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
 	// 1. Scrape Proxies
-	proxies, err := scraper.ScrapeProxies()
+	proxies, err := scraper.ScrapeProxies(ctx)
 	if err != nil {
 		log.Printf("ERROR: Failed to scrape proxies: %v", err)
 		return
@@ -56,7 +57,7 @@ func runCycle(workers int) {
 	log.Printf("INFO: Finished checking. Found %d working proxies out of %d", len(workingProxies), len(proxies))
 
 	// 3. Write Output
-	if err := output.WriteOutputs(workingProxies); err != nil {
+	if err := output.WriteOutputs(workingProxies, outdir); err != nil {
 		log.Printf("ERROR: Failed to write outputs: %v", err)
 		return
 	}

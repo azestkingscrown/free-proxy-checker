@@ -2,25 +2,29 @@ package scraper
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
 	"proxyforge-clone/internal/models"
 )
 
 const proxySourceURL = "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt"
 
-// ScrapeProxies fetches the proxy list from the designated source.
-func ScrapeProxies() ([]models.Proxy, error) {
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
+// ScrapeProxies fetches the proxy list from the designated source using the provided context.
+func ScrapeProxies(ctx context.Context) ([]models.Proxy, error) {
+	client := &http.Client{}
 
 	log.Printf("INFO: Fetching proxies from %s", proxySourceURL)
-	resp, err := client.Get(proxySourceURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, proxySourceURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch proxies: %w", err)
 	}

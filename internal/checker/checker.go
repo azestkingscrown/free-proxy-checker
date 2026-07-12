@@ -88,8 +88,9 @@ func checkProxy(ctx context.Context, p *models.Proxy) bool {
 	case "socks4", "socks4a", "socks5":
 		proxyAddr := fmt.Sprintf("%s:%s", p.IP, p.Port)
 
-		// Use h12.io/socks for both SOCKS4 and SOCKS5 as it handles them elegantly
-		dialSocksProxy := socks.Dial(fmt.Sprintf("%s://%s", p.Protocol, proxyAddr))
+		// Use h12.io/socks for both SOCKS4 and SOCKS5 as it handles them elegantly.
+		// Added "?timeout=10s" to prevent the dialing goroutine from hanging indefinitely.
+		dialSocksProxy := socks.Dial(fmt.Sprintf("%s://%s?timeout=10s", p.Protocol, proxyAddr))
 
 		transport = &http.Transport{
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
@@ -126,7 +127,7 @@ func checkProxy(ctx context.Context, p *models.Proxy) bool {
 
 	client := &http.Client{
 		Transport: transport,
-		Timeout:   timeout,
+		// Timeout removed to rely solely on context timeout
 	}
 
 	req, err := http.NewRequestWithContext(checkCtx, http.MethodGet, checkURL, nil)
